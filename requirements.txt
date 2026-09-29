@@ -1,0 +1,8 @@
+# Dependencies (Python 3.12). Install CPU torch separately for smaller download:
+#   pip install torch --index-url https://download.pytorch.org/whl/cpu
+torch>=2.4
+transformers>=4.51
+pdfplumber>=0.11
+jieba>=0.42
+numpy>=1.26
+Flask>=3.0

@@ -1,0 +1,738 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>财报知识库问答</title>
+<style>
+  :root{
+    --bg:#f4f6f9; --panel:#ffffff; --border:#e2e7ef; --border-2:#cfd8e6;
+    --text:#182130; --text-2:#55617a; --text-3:#8794ad;
+    --accent:#0e7490; --accent-2:#155e75; --accent-soft:#e2f1f5;
+    --amber:#b45309; --amber-soft:#fdf1e0;
+    --mark:#ffe6a3; --radius:8px;
+    --shadow:0 1px 2px rgba(24,33,48,.05);
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--text);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei","Noto Sans SC",sans-serif;
+    font-size:14px;line-height:1.65;}
+  button{font-family:inherit}
+  a{color:var(--accent);text-decoration:none}
+  a:hover{text-decoration:underline}
+
+  /* ---------- 顶栏 ---------- */
+  header.top{background:var(--panel);border-bottom:1px solid var(--border)}
+  .top-in{max-width:1240px;margin:0 auto;padding:14px 20px;display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+  .logo{width:34px;height:34px;border-radius:8px;background:var(--accent);color:#fff;display:flex;align-items:center;justify-content:center;flex:none}
+  .titles h1{font-size:17px;margin:0;font-weight:700;letter-spacing:.2px}
+  .titles p{margin:0;color:var(--text-3);font-size:12px}
+  .top-stats{margin-left:auto;display:flex;gap:8px;flex-wrap:wrap}
+  .stat{background:var(--bg);border:1px solid var(--border);border-radius:999px;padding:3px 12px;font-size:12px;color:var(--text-2);white-space:nowrap}
+  .stat b{color:var(--text);font-weight:600}
+
+  /* ---------- 布局 ---------- */
+  .layout{max-width:1240px;margin:0 auto;padding:20px;width:100%;display:grid;grid-template-columns:272px minmax(0,1fr);gap:20px;align-items:start}
+  @media (max-width:960px){.layout{grid-template-columns:1fr;padding:14px}}
+
+  /* ---------- 侧栏 ---------- */
+  aside{background:var(--panel);border:1px solid var(--border);border-radius:var(--radius);padding:16px;position:sticky;top:16px}
+  .side-sec{padding-bottom:14px;margin-bottom:14px;border-bottom:1px dashed var(--border)}
+  .side-sec:last-child{border-bottom:none;margin-bottom:0;padding-bottom:0}
+  .side-title{display:flex;align-items:center;gap:6px;font-weight:600;font-size:13px;margin-bottom:10px;color:var(--text)}
+  .side-title .mini-links{margin-left:auto;display:flex;gap:8px}
+  .mini-links a{font-size:12px;color:var(--text-3);font-weight:400}
+  .mini-links a:hover{color:var(--accent)}
+
+  .co-item{display:flex;align-items:flex-start;gap:8px;padding:7px 8px;border-radius:6px;cursor:pointer}
+  .co-item:hover{background:var(--bg)}
+  .co-item input{margin-top:4px;accent-color:var(--accent);flex:none}
+  .co-body{min-width:0;flex:1}
+  .co-name{font-weight:600;font-size:13px;display:flex;align-items:center;gap:6px}
+  .co-count{font-size:11px;color:var(--text-3);font-weight:400}
+  .doc-chips{display:flex;flex-wrap:wrap;gap:4px;margin-top:3px}
+  .doc-chip{font-size:11px;color:var(--text-2);background:var(--bg);border:1px solid var(--border);border-radius:4px;padding:0 6px;line-height:18px}
+
+  .seg{display:flex;background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:2px;gap:2px}
+  .seg button{flex:1;border:none;background:transparent;padding:5px 4px;border-radius:4px;font-size:12px;color:var(--text-2);cursor:pointer;white-space:nowrap}
+  .seg button.active{background:var(--panel);color:var(--accent);font-weight:600;box-shadow:var(--shadow)}
+  .seg-note{font-size:11px;color:var(--text-3);margin-top:6px}
+
+  .range-row{display:flex;align-items:center;gap:10px}
+  .range-row input{flex:1;accent-color:var(--accent)}
+  .range-val{font-variant-numeric:tabular-nums;font-weight:600;color:var(--accent);min-width:20px;text-align:right}
+
+  .idx-box{background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:10px 12px;font-size:12px;color:var(--text-2)}
+  .idx-box .row{display:flex;justify-content:space-between;gap:8px}
+  .idx-box .row b{color:var(--text);font-weight:600}
+
+  /* ---------- 主区 ---------- */
+  main{min-width:0;display:flex;flex-direction:column;gap:16px}
+  .search{background:var(--panel);border:1px solid var(--border);border-radius:var(--radius);padding:16px;box-shadow:var(--shadow)}
+  .search-row{display:flex;gap:10px}
+  .search-row input{flex:1;min-width:0;height:44px;padding:0 14px;border:1px solid var(--border-2);border-radius:var(--radius);font-size:15px;color:var(--text);background:#fff}
+  .search-row input:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+  .btn-ask{height:44px;padding:0 20px;border:none;border-radius:var(--radius);background:var(--accent);color:#fff;font-size:14px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:8px;flex:none}
+  .btn-ask:hover{background:var(--accent-2)}
+  .btn-ask:disabled{opacity:.6;cursor:default}
+  .examples{margin-top:12px;display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+  .examples .lbl{font-size:12px;color:var(--text-3)}
+  .ex-chip{border:1px solid var(--border);background:var(--bg);color:var(--text-2);border-radius:999px;padding:4px 12px;font-size:12px;cursor:pointer}
+  .ex-chip:hover{border-color:var(--accent);color:var(--accent);background:var(--accent-soft)}
+  .hint{margin-top:10px;font-size:12px;color:var(--text-3)}
+
+  .panel{background:var(--panel);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow)}
+  .panel-head{display:flex;align-items:center;gap:10px;padding:13px 16px;border-bottom:1px solid var(--border)}
+  .panel-head h2{font-size:14px;margin:0;font-weight:700;display:flex;align-items:center;gap:7px}
+  .panel-head .spacer{flex:1}
+  .tag{font-size:11px;border-radius:4px;padding:1px 7px;border:1px solid var(--border);color:var(--text-2);background:var(--bg)}
+  .tag.teal{color:var(--accent);border-color:#bfe0e8;background:var(--accent-soft)}
+  .panel-body{padding:14px 16px}
+
+  .evidence{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:10px}
+  .evidence li{display:flex;gap:10px;padding:12px 14px;border:1px solid var(--border);border-radius:var(--radius);background:#fbfcfe}
+  .ev-main{flex:1;min-width:0}
+  .ev-text{color:var(--text)}
+  .ev-meta{margin-top:5px;font-size:11px;color:var(--text-3)}
+  .cite{flex:none;cursor:pointer;user-select:none;font-size:11px;font-weight:600;color:var(--accent);background:var(--accent-soft);border:1px solid #bfe0e8;border-radius:4px;padding:1px 6px;height:fit-content;font-variant-numeric:tabular-nums}
+  .cite:hover{background:var(--accent);color:#fff}
+
+  .src{border:1px solid var(--border);border-radius:var(--radius);padding:12px 14px;margin-bottom:10px;background:#fff;transition:box-shadow .3s}
+  .src:last-child{margin-bottom:0}
+  .src.flash{box-shadow:0 0 0 3px var(--amber-soft);border-color:#ecc68f}
+  .src-head{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+  .chip{font-size:11px;border-radius:4px;padding:1px 7px;border:1px solid var(--border);color:var(--text-2);background:var(--bg);white-space:nowrap}
+  .chip-company{color:var(--accent);border-color:#bfe0e8;background:var(--accent-soft);font-weight:600}
+  .chip-table{color:var(--amber);border-color:#ecc68f;background:var(--amber-soft)}
+  .src-score{margin-left:auto;font-size:11px;color:var(--text-3);font-variant-numeric:tabular-nums}
+  .src-chapter{font-size:12px;color:var(--text-2);margin-top:6px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .src-excerpt{margin-top:6px;color:var(--text);font-size:13px;display:-webkit-box;-webkit-line-clamp:4;-webkit-box-orient:vertical;overflow:hidden}
+  .src-excerpt.expanded{-webkit-line-clamp:unset}
+  .src-foot{margin-top:9px;display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+  .bars{display:flex;gap:14px;flex:1;min-width:220px}
+  .bar-row{display:flex;align-items:center;gap:7px;flex:1;min-width:0}
+  .bar-label{font-size:11px;color:var(--text-3);flex:none}
+  .bar{flex:1;height:6px;background:var(--bg);border-radius:99px;overflow:hidden;min-width:40px}
+  .bar i{display:block;height:100%;background:var(--accent);border-radius:99px}
+  .bar.amber i{background:var(--amber)}
+  .bar-val{font-size:11px;color:var(--text-2);font-variant-numeric:tabular-nums;flex:none;min-width:34px;text-align:right}
+  .pdf-link{font-size:12px;display:inline-flex;align-items:center;gap:5px;flex:none}
+
+  mark{background:var(--mark);color:inherit;border-radius:2px;padding:0 1px}
+
+  .empty{padding:26px 16px;text-align:center;color:var(--text-3);font-size:13px}
+  .empty .ico{color:#b8c3d6;margin-bottom:8px}
+.empty b{color:var(--text-2)}
+.gen{font-size:13.5px;line-height:1.8;color:var(--text);white-space:pre-wrap;word-break:break-word}
+.gen .cite{display:inline-flex;margin:0 1px}
+.gen-err{margin-top:12px;font-size:12px;color:#92400e;background:#fef3c7;border:1px solid #fde68a;border-radius:6px;padding:7px 11px;line-height:1.6}
+
+  .skeleton{padding:14px 16px}
+  .sk{height:13px;border-radius:6px;background:linear-gradient(90deg,#eef1f6 25%,#e2e7ef 50%,#eef1f6 75%);background-size:200% 100%;animation:sh 1.2s infinite;margin-bottom:10px}
+  @keyframes sh{0%{background-position:200% 0}100%{background-position:-200% 0}}
+
+  footer.foot{max-width:1240px;margin:0 auto;padding:6px 20px 26px;color:var(--text-3);font-size:12px;line-height:1.8}
+
+  .spin{width:15px;height:15px;border:2px solid rgba(255,255,255,.4);border-top-color:#fff;border-radius:50%;animation:rot .7s linear infinite}
+  @keyframes rot{to{transform:rotate(360deg)}}
+
+  /* ---------- 主页与页签 ---------- */
+  .tabs{display:flex;gap:6px;background:var(--panel);border:1px solid var(--border);border-radius:var(--radius);padding:4px;box-shadow:var(--shadow)}
+  .tabs button{flex:1;border:none;background:transparent;padding:9px 10px;border-radius:6px;font-size:13px;color:var(--text-2);cursor:pointer;display:flex;align-items:center;justify-content:center;gap:7px;font-weight:600;white-space:nowrap}
+  .tabs button:hover{color:var(--accent)}
+  .tabs button.active{background:var(--accent-soft);color:var(--accent)}
+
+  /* ---------- 跨超公司对比 ---------- */
+  .cmp-controls{display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end}
+  .cmp-field{display:flex;flex-direction:column;gap:5px;min-width:0}
+  .cmp-field label{font-size:12px;color:var(--text-3)}
+  .cmp-field select{height:34px;padding:0 10px;border:1px solid var(--border-2);border-radius:6px;background:#fff;color:var(--text);font-size:13px;min-width:200px}
+  .cmp-go{height:34px;padding:0 16px;border:none;border-radius:6px;background:var(--accent);color:#fff;font-size:13px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:6px}
+  .cmp-go:hover{background:var(--accent-2)}
+  .cmp-go:disabled{opacity:.6;cursor:default}
+  .cmp-scope{margin-left:auto;font-size:12px;color:var(--text-3);align-self:center;white-space:nowrap}
+  .cmp-table{width:100%;border-collapse:collapse;font-size:13px;margin-top:14px}
+  .cmp-table th{text-align:left;font-size:11px;color:var(--text-3);font-weight:600;padding:6px 8px;border-bottom:1px solid var(--border-2);white-space:nowrap}
+  .cmp-table th.num{text-align:right}
+  .cmp-table td{padding:9px 8px;border-bottom:1px solid var(--border);vertical-align:middle}
+  .cmp-table tr:last-child td{border-bottom:none}
+  .cmp-rank{font-variant-numeric:tabular-nums;color:var(--text-3);width:34px}
+  .cmp-name{font-weight:600;white-space:nowrap}
+  .cmp-period{font-size:11px;color:var(--text-3);white-space:nowrap}
+  .cmp-num{text-align:right;font-variant-numeric:tabular-nums;font-weight:700;white-space:nowrap}
+  .cmp-num.neg{color:#b91c1c}
+  .cmp-raw{font-size:11px;color:var(--text-3);white-space:nowrap}
+  .cmp-bar{height:6px;background:var(--bg);border-radius:99px;overflow:hidden;min-width:70px;max-width:170px}
+  .cmp-bar i{display:block;height:100%;background:var(--accent);border-radius:99px}
+  .cmp-note{margin-top:12px;font-size:12px;color:#92400e;background:#fef3c7;border:1px solid #fde68a;border-radius:6px;padding:7px 11px;line-height:1.6}
+  .cmp-miss{margin-top:8px;font-size:12px;color:var(--text-3);line-height:1.7}
+  .cmp-in-ask{margin-bottom:14px}
+  .cmp-title{font-size:12px;color:var(--text-3);margin-bottom:2px;display:flex;align-items:center;gap:6px}
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="top-in">
+    <div class="logo" aria-hidden="true">
+      <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M7 15l4-6 3 4 4-7"/></svg>
+    </div>
+    <div class="titles">
+      <h1>公司财报知识库问答</h1>
+      <p>财报语料 · 混合检索 · 答案标注出处</p>
+    </div>
+    <div class="top-stats" id="topStats"></div>
+  </div>
+</header>
+
+<div class="layout">
+  <aside id="sidebar">
+    <div class="side-sec">
+      <div class="side-title">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 21h18"/><path d="M5 21V7l7-4 7 4v14"/><path d="M9 21v-6h6v6"/></svg>
+        公司范围
+        <span class="mini-links"><a href="#" id="selectAll">全选</a><a href="#" id="clearAll">清空</a></span>
+      </div>
+      <div id="companyList"></div>
+    </div>
+
+    <div class="side-sec">
+      <div class="side-title">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg>
+        报告类型
+      </div>
+      <div class="seg" id="docTypeSeg">
+        <button data-v="" class="active">全部</button><button data-v="半年报">半年报</button><button data-v="年报">年报</button>
+      </div>
+    </div>
+
+    <div class="side-sec">
+      <div class="side-title">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+        检索方式
+      </div>
+      <div class="seg" id="modeSeg">
+        <button data-v="hybrid" class="active">混合</button><button data-v="dense">向量</button><button data-v="bm25">BM25</button>
+      </div>
+      <div class="seg-note" id="modeNote">向量 0.6 + BM25 0.4 加权融合</div>
+    </div>
+
+    <div class="side-sec">
+      <div class="side-title">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
+        返回段落数
+      </div>
+      <div class="range-row">
+        <input type="range" id="topK" min="3" max="12" step="1" value="8">
+        <span class="range-val" id="topKVal">8</span>
+      </div>
+    </div>
+
+    <div class="side-sec">
+      <div class="idx-box" id="idxBox">加载中 …</div>
+    </div>
+  </aside>
+
+  <main>
+    <div class="tabs" id="mainTabs">
+      <button type="button" data-v="ask" class="active">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+        检索问答
+      </button>
+      <button type="button" data-v="compare">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V10"/><path d="M10 20V4"/><path d="M16 20v-7"/><path d="M22 20H2"/></svg>
+        跨公司对比
+      </button>
+    </div>
+
+    <div id="askView">
+    <div class="search">
+      <div class="search-row">
+        <input id="q" type="text" maxlength="200" placeholder="提问财报问题，例如：比亚迪2026年上半年营业收入是多少？" autocomplete="off">
+        <button class="btn-ask" id="askBtn">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+          提问
+        </button>
+      </div>
+      <div class="examples" id="examples"><span class="lbl">示例：</span></div>
+      <div class="hint">回答综合检索命中的财报原文：优先由 AI 生成带引用编号的总结，可切换查看原文摘句；点击引用编号可定位出处，亦可打开原始 PDF 核对。</div>
+    </div>
+
+    <section class="panel" id="answerPanel" hidden>
+      <div class="panel-head">
+        <h2>
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color:var(--accent)"><path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9z"/></svg>
+          回答
+        </h2>
+        <span class="spacer"></span>
+        <span class="tag" id="ansMode">混合检索</span>
+        <span class="seg" id="ansView" hidden>
+          <button type="button" data-v="gen" title="AI 生成式总结">AI 总结</button>
+          <button type="button" data-v="sent" title="财报原句摘录">原文摘句</button>
+        </span>
+      </div>
+      <div class="panel-body" id="answerBody"></div>
+    </section>
+
+    <section class="panel" id="srcPanel" hidden>
+      <div class="panel-head">
+        <h2>
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+          相关段落
+        </h2>
+        <span class="spacer"></span>
+        <span class="tag" id="srcCount"></span>
+        <span class="tag" id="srcLatency"></span>
+      </div>
+      <div class="panel-body" id="srcBody"></div>
+    </section>
+
+    </div>
+
+    <section class="panel" id="comparePanel" hidden>
+      <div class="panel-head">
+        <h2>
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color:var(--accent)"><path d="M4 20V10"/><path d="M10 20V4"/><path d="M16 20v-7"/><path d="M22 20H2"/></svg>
+          跨公司对比
+        </h2>
+        <span class="spacer"></span>
+        <span class="tag teal">同一口径 · 单位统一 · 可溯源</span>
+      </div>
+      <div class="panel-body">
+        <div class="cmp-controls">
+          <div class="cmp-field">
+            <label for="cmpMetric">对比指标</label>
+            <select id="cmpMetric"></select>
+          </div>
+          <div class="cmp-field">
+            <label>排序</label>
+            <div class="seg" id="cmpSortSeg">
+              <button type="button" data-v="desc" class="active">从高到低</button>
+              <button type="button" data-v="asc">从低到高</button>
+            </div>
+          </div>
+          <button class="cmp-go" id="cmpGo">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M7 15l4-6 3 4 4-7"/></svg>
+            生成对比
+          </button>
+          <span class="cmp-scope" id="cmpScope"></span>
+        </div>
+        <div id="cmpBody"></div>
+      </div>
+    </section>
+  </main>
+</div>
+
+<footer class="foot" id="foot"></footer>
+
+<script>
+(function(){
+  "use strict";
+var state = { companies: [], doc_type: "", mode: "hybrid", top_k: 8, meta: null, tokens: [], view: "gen", last: null,
+  tab: "ask", metric: "revenue", cmp_sort: "desc" };
+
+  function $(id){ return document.getElementById(id); }
+  function esc(s){
+    return String(s == null ? "" : s).replace(/[&<>"']/g, function(c){
+      return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c];
+    });
+  }
+  function hl(text, tokens){
+    var out = esc(text);
+    var toks = (tokens || []).filter(function(t){ return t && t.length >= 2; }).map(esc)
+      .sort(function(a,b){ return b.length - a.length; });
+    for (var i = 0; i < toks.length; i++){
+      out = out.split(toks[i]).join("<mark>" + toks[i] + "</mark>");
+    }
+    return out;
+  }
+  function modeLabel(m){
+    return m === "dense" ? "向量检索" : m === "bm25" ? "BM25 检索" : "混合检索";
+  }
+
+  /* ---------------- 元信息 ---------------- */
+  function loadMeta(){
+    fetch("/api/meta").then(function(r){ return r.json(); }).then(function(m){
+      state.meta = m;
+      renderTopStats(m);
+      renderCompanies(m);
+      renderIdxBox(m);
+      refreshExamples();
+      var foot = document.createElement("span");
+      foot.innerHTML = "本地检索式问答：pdfplumber 抽取文本与表格 · Qwen3-Embedding-0.6B 向量化 · BM25 关键词索引 · 加权混合召回。<br>索引更新于 " + esc(m.built_at || "—") + " · 共 " + m.n_chunks + " 个切块（维度 " + m.embed_dim + "）。";
+      $("foot").appendChild(foot);
+      renderMetricOptions(m);
+      updateScopeNote();
+    }).catch(function(){
+      $("idxBox").textContent = "索引加载失败，请先运行 python build_index.py";
+    });
+  }
+
+  /* ---------------- 跨超公司对比 ---------------- */
+  function renderMetricOptions(m){
+    var metrics = (m && m.metrics) || [];
+    if (!metrics.length) return;
+    var sel = $("cmpMetric");
+    sel.innerHTML = metrics.map(function(x){
+      return '<option value="' + esc(x.name) + '">' + esc(x.label) + "</option>";
+    }).join("");
+    state.metric = metrics[0].name;
+  }
+
+  function updateScopeNote(){
+    var el = $("cmpScope");
+    if (!el) return;
+    var names = (state.meta ? state.meta.companies : []).filter(function(c){
+      return state.companies.indexOf(c.key) >= 0;
+    }).map(function(c){ return c.display; });
+    el.textContent = "已选 " + names.length + " 家" + (names.length ? "：" + names.join("、") : "");
+    // 对比页上改公司范围时实时重算，问答页不动（避免每次勾选都发一次检索）
+    if (state.tab === "compare" && $("cmpBody").innerHTML) askCompare();
+  }
+
+  function fmtNum(v, unit){
+    return v.toLocaleString("zh-CN", {minimumFractionDigits: 2, maximumFractionDigits: 2});
+  }
+
+  function comparisonHtml(cmp){
+    if (!cmp) return "";
+    var rows = cmp.rows || [];
+    if (!rows.length){
+      return '<div class="empty"><b>没有取到该指标</b><br>换个指标或调整左侧公司范围后重试。</div>';
+    }
+    var maxAbs = 1;
+    rows.forEach(function(r){ if (Math.abs(r.value) > maxAbs) maxAbs = Math.abs(r.value); });
+    var body = rows.map(function(r, i){
+      var w = Math.round(Math.abs(r.value) / maxAbs * 100);
+      var neg = r.value < 0 ? " neg" : "";
+      return "<tr>" +
+        '<td class="cmp-rank">' + (i + 1) + "</td>" +
+        '<td><span class="cmp-name">' + esc(r.company_display) + '</span>' +
+          '<div class="cmp-period">' + esc(r.doc_type) + " " + esc(r.period) + "</div></td>" +
+        '<td class="cmp-num' + neg + '">' + fmtNum(r.value) + " " + esc(cmp.unit) + "</td>" +
+        '<td><div class="cmp-bar"><i style="width:' + w + '%"></i></div></td>' +
+        '<td class="cmp-raw" title="' + esc(r.raw_row) + '">' + esc(r.raw_unit) + " · 第 " + r.page + " 页</td>" +
+        '<td><a class="pdf-link" href="' + esc(r.pdf_url) + '" target="_blank" rel="noopener">原文</a></td>' +
+      "</tr>";
+    }).join("");
+    var notes = "";
+    if (cmp.period_mix){
+      notes += '<div class="cmp-note">各公司报告期不同（' + esc(cmp.periods.join("、")) + "），横向比较时请注意口径与时间差异。</div>";
+    }
+    if (rows.length < 2){
+      notes += '<div class="cmp-note">仅取到 1 家公司，不构成对比。</div>';
+    }
+    if (cmp.missing && cmp.missing.length){
+      notes += '<div class="cmp-miss">未取到 ' + cmp.missing.length + " 家：" +
+        cmp.missing.map(function(x){ return esc(x.company_display); }).join("、") +
+        "（报告中未以表格形式直接披露该指标）</div>";
+    }
+    if (cmp.unknown && cmp.unknown.length){
+      notes += '<div class="cmp-miss">未知公司：' + cmp.unknown.map(esc).join("、") + "</div>";
+    }
+    return '<div class="cmp-title">' + esc(cmp.metric_label) + " · 单位 " + esc(cmp.unit) +
+      " · " + cmp.rows.length + "/" + cmp.n_companies + " 家 · " +
+      (cmp.sort === "asc" ? "从低到高" : "从高到低") + "</div>" +
+      '<table class="cmp-table"><thead><tr>' +
+      "<th>#</th><th>公司</th><th class=\"num\">数值</th><th></th><th>披露口径</th><th></th>" +
+      "</tr></thead><tbody>" + body + "</tbody></table>" + notes;
+  }
+
+  function askCompare(){
+    var body = $("cmpBody");
+    if (!state.companies.length){
+      body.innerHTML = '<div class="empty"><b>未选择公司</b><br>请在左侧“公司范围”中至少勾选两家。</div>';
+      return;
+    }
+    $("cmpGo").disabled = true;
+    body.innerHTML = '<div class="skeleton"><div class="sk"></div><div class="sk" style="width:70%"></div><div class="sk" style="width:50%"></div></div>';
+    fetch("/api/compare", {
+      method: "POST",
+      headers: {"Content-Type": "application/json"},
+      body: JSON.stringify({companies: state.companies, metric: state.metric, sort: state.cmp_sort})
+    }).then(function(r){ return r.json(); }).then(function(res){
+      $("cmpGo").disabled = false;
+      if (res.error){ body.innerHTML = '<div class="empty"><b>出错了</b><br>' + esc(res.error) + "</div>"; return; }
+      body.innerHTML = comparisonHtml(res);
+    }).catch(function(err){
+      $("cmpGo").disabled = false;
+      body.innerHTML = '<div class="empty"><b>出错了</b><br>' + esc(String(err)) + "</div>";
+    });
+  }
+
+  function switchTab(v){
+    state.tab = v;
+    Array.prototype.forEach.call($("mainTabs").querySelectorAll("button"), function(b){
+      b.classList.toggle("active", b.getAttribute("data-v") === v);
+    });
+    var isCompare = v === "compare";
+    $("askView").hidden = isCompare;
+    $("comparePanel").hidden = !isCompare;
+    if (isCompare && !$("cmpBody").innerHTML){ askCompare(); }
+  }
+
+  function renderAskComparison(res){
+    var old = $("askCmp");
+    if (old && old.parentNode){ old.parentNode.removeChild(old); }
+    if (!res || !res.comparison) return;
+    var wrap = document.createElement("div");
+    wrap.id = "askCmp";
+    wrap.className = "cmp-in-ask";
+    wrap.innerHTML = comparisonHtml(res.comparison);
+    var body = $("answerBody");
+    body.insertBefore(wrap, body.firstChild);
+  }
+
+  function renderTopStats(m){
+    var boxes = [
+      ["财报", m.n_docs + " 份"],
+      ["切块", m.n_chunks + " 个"],
+      ["向量维度", m.embed_dim],
+      ["索引", "向量 + BM25"]
+    ];
+    $("topStats").innerHTML = boxes.map(function(b){
+      return '<span class="stat">' + esc(b[0]) + ' <b>' + esc(b[1]) + '</b></span>';
+    }).join("");
+  }
+
+  function renderCompanies(m){
+    var html = m.companies.map(function(c){
+      var docs = c.docs.map(function(d){
+        return '<span class="doc-chip">' + esc(d.doc_type) + " " + esc(d.period || "") + "</span>";
+      }).join("");
+      return '<label class="co-item"><input type="checkbox" value="' + esc(c.key) + '" checked>' +
+        '<span class="co-body"><span class="co-name">' + esc(c.display) +
+        ' <span class="co-count">' + c.n_chunks + " 段</span></span>" +
+        '<span class="doc-chips">' + docs + "</span></span></label>";
+    }).join("");
+    $("companyList").innerHTML = html;
+    state.companies = m.companies.map(function(c){ return c.key; });
+    Array.prototype.forEach.call($("companyList").querySelectorAll("input"), function(cb){
+    cb.addEventListener("change", function(){
+        state.companies = Array.prototype.map.call(
+          $("companyList").querySelectorAll("input:checked"), function(x){ return x.value; });
+        updateScopeNote();
+      });
+    });
+  }
+
+  function renderIdxBox(m){
+    var rows = [
+      ["切块总数", m.n_chunks],
+      ["文档数", m.n_docs],
+      ["向量模型", (m.model || "").split(/[\\/]/).pop()],
+      ["混合权重", "向量 " + m.weights.dense + " / BM25 " + m.weights.bm25]
+    ];
+    $("idxBox").innerHTML = '<div class="side-title" style="margin-bottom:8px">索引状态</div>' +
+      rows.map(function(r){
+        return '<div class="row"><span>' + esc(r[0]) + "</span><b>" + esc(r[1]) + "</b></div>";
+      }).join("");
+  }
+
+  /* ---------------- 控件 ---------------- */
+  function bindSeg(id, key, note){
+    var seg = $(id);
+    seg.addEventListener("click", function(e){
+      var btn = e.target.closest("button");
+      if (!btn) return;
+      Array.prototype.forEach.call(seg.querySelectorAll("button"), function(b){ b.classList.remove("active"); });
+      btn.classList.add("active");
+      state[key] = btn.getAttribute("data-v");
+      if (note) note();
+    });
+  }
+
+  function refreshExamples(){
+    var ex = (state.meta && state.meta.example_questions) || [];
+    var wrap = $("examples");
+    wrap.querySelectorAll(".ex-chip").forEach(function(n){ n.remove(); });
+    ex.forEach(function(q){
+      var b = document.createElement("button");
+      b.className = "ex-chip";
+      b.textContent = q;
+      b.addEventListener("click", function(){ $("q").value = q; ask(); });
+      wrap.appendChild(b);
+    });
+  }
+
+  /* ---------------- 提问 ---------------- */
+  function setLoading(on){
+    $("askBtn").disabled = on;
+    $("askBtn").innerHTML = on
+      ? '<span class="spin"></span>检索中'
+      : '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>提问';
+  }
+
+  function ask(){
+    var q = $("q").value.trim();
+    if (!q){ $("q").focus(); return; }
+    setLoading(true);
+    fetch("/api/ask", {
+      method: "POST",
+      headers: {"Content-Type": "application/json"},
+      body: JSON.stringify({
+        question: q, companies: state.companies, doc_types: state.doc_type ? [state.doc_type] : [],
+        mode: state.mode, top_k: state.top_k
+      })
+    }).then(function(r){ return r.json(); }).then(function(res){
+      setLoading(false);
+      if (res.error){ renderError(res.error); return; }
+      render(res);
+    }).catch(function(err){
+      setLoading(false);
+      renderError(String(err));
+    });
+  }
+
+  function renderError(msg){
+    $("answerPanel").hidden = false;
+    $("srcPanel").hidden = true;
+    $("answerBody").innerHTML = '<div class="empty"><b>出错了</b><br>' + esc(msg) + "</div>";
+  }
+
+  function render(res){
+    state.tokens = res.highlights || [];
+    state.last = res;
+    state.view = (res.answer && res.answer.generated) ? "gen" : "sent";
+    $("ansMode").textContent = modeLabel(res.mode);
+    $("answerPanel").hidden = false;
+    var hasGen = !!(res.answer && res.answer.generated);
+    $("ansView").hidden = !hasGen;
+    Array.prototype.forEach.call($("ansView").querySelectorAll("button"), function(b){
+      b.classList.toggle("active", b.getAttribute("data-v") === state.view);
+    });
+
+    renderAnswer(res);
+
+    $("srcPanel").hidden = false;
+    $("srcCount").textContent = res.sources.length + " 段";
+    $("srcLatency").textContent = res.latency_ms + " ms";
+    $("srcBody").innerHTML = res.sources.map(sourceCard).join("");
+    Array.prototype.forEach.call($("srcBody").querySelectorAll(".src-excerpt"), function(el){
+      el.addEventListener("click", function(){ el.classList.toggle("expanded"); });
+    });
+    renderAskComparison(res);
+  }
+
+  function renderAnswer(res){
+    if (!res || !res.answer){ return; }
+    var ans = res.answer;
+    var sents = ans.sentences || [];
+    if (!sents.length && !ans.generated){
+      $("answerBody").innerHTML = '<div class="empty">' +
+        '<div class="ico"><svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg></div>' +
+        "未检索到足够相关的财报内容。<br>可尝试：更换说法、扩大公司范围、切换检索方式。</div>";
+      return;
+    }
+    var html;
+    if (state.view === "gen" && ans.generated){
+      html = '<div class="gen">' + linkCites(esc(ans.generated)) + "</div>";
+      if (ans.llm_error){
+        html += '<div class="gen-err">AI 生成未成功，已改为展示原文摘句：' + esc(ans.llm_error) + "</div>";
+      }
+    } else {
+      html = '<ul class="evidence">' + sents.map(function(e){
+        return "<li>" +
+          '<span class="cite" data-src="' + e.source + '" title="查看出处">[' + (e.source + 1) + "]</span>" +
+          '<span class="ev-main"><span class="ev-text">' + hl(e.text, state.tokens) + "</span>" +
+          '<span class="ev-meta">' + esc(e.company) + " · 第 " + esc(e.page) + " 页 · 相关度 " + e.score.toFixed(2) + "</span></span></li>";
+      }).join("") + "</ul>";
+    }
+    $("answerBody").innerHTML = html;
+    bindCites();
+  }
+
+  function linkCites(s){
+    var total = (state.last && state.last.sources) ? state.last.sources.length : 0;
+    return String(s).replace(/\[(\d{1,2})\]/g, function(m, g){
+      var n = parseInt(g, 10) - 1;
+      if (n < 0 || n >= total){ return m; }
+      return '<span class="cite" data-src="' + n + '" title="查看出处">' + m + "</span>";
+    });
+  }
+
+  function bindCites(){
+    Array.prototype.forEach.call($("answerBody").querySelectorAll(".cite"), function(c){
+      c.addEventListener("click", function(){
+        var el = $("src-" + c.getAttribute("data-src"));
+        if (el){
+          el.scrollIntoView({behavior: "smooth", block: "center"});
+          el.classList.add("flash");
+          setTimeout(function(){ el.classList.remove("flash"); }, 1600);
+        }
+      });
+    });
+  }
+
+  function sourceCard(s){
+    var pages = s.pages && s.pages.length > 1
+      ? "第 " + s.pages[0] + "-" + s.pages[s.pages.length - 1] + " 页"
+      : "第 " + s.page + " 页";
+    var d = s.dense == null ? 0 : Math.round(Math.max(0, Math.min(1, s.dense)) * 100);
+    var b = s.bm25_norm == null ? 0 : Math.round(Math.max(0, Math.min(1, s.bm25_norm)) * 100);
+    return '<div class="src" id="src-' + s.n + '">' +
+      '<div class="src-head">' +
+        '<span class="chip chip-company">' + esc(s.company) + "</span>" +
+        '<span class="chip">' + esc(s.doc_type) + " · " + esc(s.period || "—") + "</span>" +
+        '<span class="chip">' + esc(pages) + "</span>" +
+        (s.has_table ? '<span class="chip chip-table">含表格</span>' : "") +
+        '<span class="src-score">融合分 ' + (s.fused == null ? "—" : s.fused.toFixed(3)) + "</span>" +
+      "</div>" +
+      '<div class="src-chapter" title="' + esc(s.chapter) + '">' + esc(s.chapter || "未分节") + "</div>" +
+      '<div class="src-excerpt" title="点击展开/收起">' + hl(s.excerpt, state.tokens) + "</div>" +
+      '<div class="src-foot"><div class="bars">' +
+        '<div class="bar-row"><span class="bar-label">向量</span><div class="bar"><i style="width:' + d + '%"></i></div><span class="bar-val">' + d + "%</span></div>" +
+        '<div class="bar-row"><span class="bar-label">BM25</span><div class="bar bar-amber"><i style="width:' + b + '%"></i></div><span class="bar-val">' + b + "%</span></div>" +
+      "</div>" +
+      '<a class="pdf-link" href="' + esc(s.pdf_url) + '" target="_blank" rel="noopener">查看原文 PDF' +
+        '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><path d="M15 3h6v6"/><path d="M10 14L21 3"/></svg></a>' +
+      "</div></div>";
+  }
+
+  /* ---------------- 绑定 ---------------- */
+  $("askBtn").addEventListener("click", ask);
+  $("mainTabs").addEventListener("click", function(e){
+    var btn = e.target.closest("button");
+    if (btn) switchTab(btn.getAttribute("data-v"));
+  });
+  $("cmpGo").addEventListener("click", askCompare);
+  $("cmpMetric").addEventListener("change", function(){
+    state.metric = this.value;
+    if (state.tab === "compare" && $("cmpBody").innerHTML) askCompare();
+  });
+  bindSeg("ansView", "view", function(){ renderAnswer(state.last); });
+  $("q").addEventListener("keydown", function(e){ if (e.key === "Enter") ask(); });
+  $("selectAll").addEventListener("click", function(e){
+    e.preventDefault();
+    Array.prototype.forEach.call($("companyList").querySelectorAll("input"), function(cb){ cb.checked = true; });
+    state.companies = state.meta.companies.map(function(c){ return c.key; });
+    updateScopeNote();
+  });
+  $("clearAll").addEventListener("click", function(e){
+    e.preventDefault();
+    Array.prototype.forEach.call($("companyList").querySelectorAll("input"), function(cb){ cb.checked = false; });
+    state.companies = [];
+    updateScopeNote();
+  });
+  bindSeg("docTypeSeg", "doc_type", null);
+  bindSeg("modeSeg", "mode", function(){
+    var notes = {
+      hybrid: "向量 0.6 + BM25 0.4 加权融合",
+      dense: "仅用 Qwen3 向量相似度召回",
+      bm25: "仅用 BM25 关键词召回"
+    };
+    $("modeNote").textContent = notes[state.mode];
+  });
+  bindSeg("cmpSortSeg", "cmp_sort", function(){
+    if (state.tab === "compare" && $("cmpBody").innerHTML) askCompare();
+  });
+  $("topK").addEventListener("input", function(){
+    state.top_k = parseInt(this.value, 10);
+    $("topKVal").textContent = this.value;
+  });
+
+  loadMeta();
+})();
+</script>
+</body>
+</html>
