@@ -147,6 +147,10 @@
   .cmp-field{display:flex;flex-direction:column;gap:5px;min-width:0}
   .cmp-field label{font-size:12px;color:var(--text-3)}
   .cmp-field select{height:34px;padding:0 10px;border:1px solid var(--border-2);border-radius:6px;background:#fff;color:var(--text);font-size:13px;min-width:200px}
+  .cmp-field input{height:34px;padding:0 10px;border:1px solid var(--border-2);border-radius:6px;background:#fff;color:var(--text);font-size:13px;width:230px;font-family:inherit}
+  .cmp-field input:focus{outline:none;border-color:var(--accent)}
+  .cmp-metric{flex:1 1 260px;min-width:0}
+  .cmp-tag{font-size:11px;color:#075985;background:#e0f2fe;border:1px solid #bae6fd;border-radius:99px;padding:1px 8px;font-weight:600;white-space:nowrap}
   .cmp-go{height:34px;padding:0 16px;border:none;border-radius:6px;background:var(--accent);color:#fff;font-size:13px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:6px}
   .cmp-go:hover{background:var(--accent-2)}
   .cmp-go:disabled{opacity:.6;cursor:default}
@@ -300,9 +304,11 @@
       </div>
       <div class="panel-body">
         <div class="cmp-controls">
-          <div class="cmp-field">
+          <div class="cmp-field cmp-metric">
             <label for="cmpMetric">对比指标</label>
-            <select id="cmpMetric"></select>
+            <input id="cmpMetric" list="cmpMetricList" maxlength="30" autocomplete="off" spellcheck="false"
+                   placeholder="选预设，或输入财报表格行名，如：研发投入合计">
+            <datalist id="cmpMetricList"></datalist>
           </div>
           <div class="cmp-field">
             <label>排序</label>
@@ -372,11 +378,15 @@ var state = { companies: [], doc_type: "", mode: "hybrid", top_k: 8, meta: null,
   function renderMetricOptions(m){
     var metrics = (m && m.metrics) || [];
     if (!metrics.length) return;
-    var sel = $("cmpMetric");
-    sel.innerHTML = metrics.map(function(x){
-      return '<option value="' + esc(x.name) + '">' + esc(x.label) + "</option>";
+    // 指标控件改成「输入框 + 预设下拉」：下拉只是行名提示，用户可自由输入财报表格里的行名
+    $("cmpMetricList").innerHTML = metrics.map(function(x){
+      return '<option value="' + esc(x.label) + '"></option>';
     }).join("");
-    state.metric = metrics[0].name;
+    var input = $("cmpMetric");
+    if (!input.value.trim()){
+      input.value = metrics[0].label;
+      state.metric = metrics[0].label;
+    }
   }
 
   function updateScopeNote(){
@@ -398,7 +408,11 @@ var state = { companies: [], doc_type: "", mode: "hybrid", top_k: 8, meta: null,
     if (!cmp) return "";
     var rows = cmp.rows || [];
     if (!rows.length){
-      return '<div class="empty"><b>没有取到该指标</b><br>换个指标或调整左侧公司范围后重试。</div>';
+      var hint = cmp.custom
+        ? "自定义指标按财报「主要会计数据 / 主要财务指标」章节的表格行名匹配，可换更完整的行名再试，例如把「研发投入」换成「研发投入合计」。"
+        : "换个指标或调整左侧公司范围后重试。";
+      return '<div class="empty"><b>没有取到该指标</b><br>' + esc(hint) +
+        "<br>已检索 " + cmp.n_companies + " 家公司。</div>";
     }
     var maxAbs = 1;
     rows.forEach(function(r){ if (Math.abs(r.value) > maxAbs) maxAbs = Math.abs(r.value); });
@@ -419,6 +433,9 @@ var state = { companies: [], doc_type: "", mode: "hybrid", top_k: 8, meta: null,
     if (cmp.period_mix){
       notes += '<div class="cmp-note">各公司报告期不同（' + esc(cmp.periods.join("、")) + "），横向比较时请注意口径与时间差异。</div>";
     }
+    if (cmp.unit_mixed){
+      notes += '<div class="cmp-note">各公司披露单位不一致，已按原文单位展示、未做折算，横向比较大小时请注意换算。</div>';
+    }
     if (rows.length < 2){
       notes += '<div class="cmp-note">仅取到 1 家公司，不构成对比。</div>';
     }
@@ -430,7 +447,9 @@ var state = { companies: [], doc_type: "", mode: "hybrid", top_k: 8, meta: null,
     if (cmp.unknown && cmp.unknown.length){
       notes += '<div class="cmp-miss">未知公司：' + cmp.unknown.map(esc).join("、") + "</div>";
     }
-    return '<div class="cmp-title">' + esc(cmp.metric_label) + " · 单位 " + esc(cmp.unit) +
+    return '<div class="cmp-title"><span>' + esc(cmp.metric_label) + "</span>" +
+      (cmp.custom ? '<span class="cmp-tag">自定义</span>' : "") +
+      (cmp.unit ? "<span> · 单位 " + esc(cmp.unit) + "</span>" : "") +
       " · " + cmp.rows.length + "/" + cmp.n_companies + " 家 · " +
       (cmp.sort === "asc" ? "从低到高" : "从高到低") + "</div>" +
       '<table class="cmp-table"><thead><tr>' +
@@ -442,6 +461,11 @@ var state = { companies: [], doc_type: "", mode: "hybrid", top_k: 8, meta: null,
     var body = $("cmpBody");
     if (!state.companies.length){
       body.innerHTML = '<div class="empty"><b>未选择公司</b><br>请在左侧“公司范围”中至少勾选两家。</div>';
+      return;
+    }
+    if (!state.metric){
+      // 清空输入框是常见的编辑动作，不当成错误：给填写提示，不发请求
+      body.innerHTML = '<div class="empty"><b>还没填指标</b><br>在“对比指标”框里选一个预设，或直接输入财报表格里的行名，例如「研发投入合计」。</div>';
       return;
     }
     $("cmpGo").disabled = true;
@@ -696,9 +720,16 @@ var state = { companies: [], doc_type: "", mode: "hybrid", top_k: 8, meta: null,
     if (btn) switchTab(btn.getAttribute("data-v"));
   });
   $("cmpGo").addEventListener("click", askCompare);
+  function syncMetricValue(){
+    state.metric = $("cmpMetric").value.trim();
+  }
+  $("cmpMetric").addEventListener("input", syncMetricValue);
   $("cmpMetric").addEventListener("change", function(){
-    state.metric = this.value;
+    syncMetricValue();
     if (state.tab === "compare" && $("cmpBody").innerHTML) askCompare();
+  });
+  $("cmpMetric").addEventListener("keydown", function(e){
+    if (e.key === "Enter" && state.tab === "compare") askCompare();
   });
   bindSeg("ansView", "view", function(){ renderAnswer(state.last); });
   $("q").addEventListener("keydown", function(e){ if (e.key === "Enter") ask(); });

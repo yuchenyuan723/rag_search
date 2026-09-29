@@ -7,6 +7,7 @@ from pathlib import Path
 from flask import Flask, abort, jsonify, request, send_file, send_from_directory
 
 from . import config as _cfg
+from .compare import MAX_METRIC_LEN
 from .config import TOP_CHUNKS, TOP_CHUNKS_RANGE
 from .retrieve import KnowledgeBase
 
@@ -30,7 +31,11 @@ def create_app(kb: KnowledgeBase | None = None) -> Flask:
         """跨公司定点取数：同一指标、同一单位、可回溯页码的横向对比。"""
         data = request.get_json(force=True, silent=True) or {}
         companies = list(data.get("companies") or [])
-        metric = str(data.get("metric") or "revenue")
+        metric = str(data.get("metric") or "").strip()
+        if not metric or len(metric) > MAX_METRIC_LEN:
+            return jsonify({
+                "error": "指标名不能为空，且长度不超过 " + str(MAX_METRIC_LEN) + " 个字符"
+            }), 400
         sort = "asc" if data.get("sort") == "asc" else "desc"
         try:
             result = knowledge.compare(companies=companies, metric=metric, sort=sort)
